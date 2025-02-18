@@ -13,19 +13,19 @@ import { MeetingSchema } from 'schema';
 import { getApi, postApi } from 'services/api';
 
 const AddMeeting = (props) => {
-    const { onClose, isOpen, setAction, from, fetchData, view } = props
-    const [leaddata, setLeadData] = useState([])
-    const [contactdata, setContactData] = useState([])
-    const [isLoding, setIsLoding] = useState(false)
+    const { onClose, isOpen, setAction, from, fetchData, view } = props;
+    const [leaddata, setLeadData] = useState([]);
+    const [contactdata, setContactData] = useState([]);
+    const [isLoding, setIsLoding] = useState(false);
     const [contactModelOpen, setContactModel] = useState(false);
     const [leadModelOpen, setLeadModel] = useState(false);
     const todayTime = new Date().toISOString().split('.')[0];
     const leadData = useSelector((state) => state?.leadData?.data);
 
 
-    const user = JSON.parse(localStorage.getItem('user'))
+    const user = JSON.parse(localStorage.getItem('user'));
 
-    const contactList = useSelector((state) => state?.contactData?.data)
+    const contactList = useSelector((state) => state?.contactData?.data);
 
 
     const initialValues = {
@@ -37,28 +37,41 @@ const AddMeeting = (props) => {
         dateTime: '',
         notes: '',
         createBy: user?._id,
-    }
+    };
 
     const formik = useFormik({
         initialValues: initialValues,
         validationSchema: MeetingSchema,
         onSubmit: (values, { resetForm }) => {
-            
+            AddData();
         },
     });
-    const { errors, touched, values, handleBlur, handleChange, handleSubmit, setFieldValue } = formik
+    const { errors, touched, values, handleBlur, handleChange, handleSubmit, setFieldValue } = formik;
 
     const AddData = async () => {
-
+        try {
+            setIsLoding(true);
+            let response = await postApi('api/meeting/add', { ...values, moduleId: props?._id });
+            if (response.status === 200) {
+                props.onClose();
+                formik.resetForm();
+                props.setAction((pre) => !pre);
+            }
+        } catch (e) {
+            console.log(e);
+        }
+        finally {
+            setIsLoding(false);
+        }
     };
 
     const fetchAllData = async () => {
-        
-    }
+
+    };
 
     useEffect(() => {
 
-    }, [props.id, values.related])
+    }, [props.id, values.related]);
 
     const extractLabels = (selectedItems) => {
         return selectedItems.map((item) => item._id);
@@ -125,7 +138,7 @@ const AddMeeting = (props) => {
                                             selectedItems={countriesWithEmailAsLabel?.filter((item) => values.related === "Contact" ? values?.attendes.includes(item._id) : values.related === "Lead" && values?.attendesLead.includes(item._id))}
                                             onSelectedItemsChange={(changes) => {
                                                 const selectedLabels = extractLabels(changes.selectedItems);
-                                                values.related === "Contact" ? setFieldValue('attendes', selectedLabels) : values.related === "Lead" && setFieldValue('attendesLead', selectedLabels)
+                                                values.related === "Contact" ? setFieldValue('attendes', selectedLabels) : values.related === "Lead" && setFieldValue('attendesLead', selectedLabels);
                                             }}
                                         />
                                     </Text>
@@ -193,14 +206,14 @@ const AddMeeting = (props) => {
                         textTransform: "capitalize",
                     }} variant="outline"
                         colorScheme="red" size="sm" onClick={() => {
-                            formik.resetForm()
-                            onClose()
+                            formik.resetForm();
+                            onClose();
                         }}>Close</Button>
                 </ModalFooter>
             </ModalContent>
         </Modal>
-    )
-}
+    );
+};
 
 export default AddMeeting
 
